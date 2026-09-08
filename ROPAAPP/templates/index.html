@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="es" class="">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control de Ropa - Gestión Integral</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' }
+  </script>
+</head>
+<body class="bg-gray-100 dark:bg-gray-950 text-gray-800 dark:text-gray-100 font-sans pb-12 transition-colors duration-200">
+
+  <div class="max-w-5xl mx-auto p-4 md:p-6 space-y-6">
+    <!-- Header y Control Tasa BCV -->
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center pb-4 border-b border-gray-300 dark:border-gray-800 gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Sistema de Control Textil</h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Ventas, Inventario, Reposición y Gastos</p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2.5 w-full md:w-auto justify-between md:justify-end">
+        <div class="flex items-center bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-2.5 py-1.5 shadow-sm">
+          <span class="text-xs font-bold text-gray-500 dark:text-gray-400 mr-2">Tasa:</span>
+          <input type="number" id="input-tasa" step="0.01" class="w-20 font-bold text-sm text-gray-800 dark:text-white bg-transparent focus:outline-none" />
+          <button onclick="guardarTasaManual()" class="ml-1 bg-gray-700 hover:bg-gray-900 text-white text-xs px-2 py-1 rounded transition">Fijar</button>
+          <button onclick="actualizarTasaBCV(true)" id="btn-bcv" class="ml-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-2 py-1 rounded shadow-sm flex items-center gap-1 transition">
+            <span>⚡ BCV</span>
+          </button>
+        </div>
+
+        <button onclick="alternarTema()" id="btn-tema" title="Cambiar tema"
+                class="p-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-amber-400 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm transition">
+          <svg id="icono-sol" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+          <svg id="icono-luna" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Métricas del Día -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div class="bg-white dark:bg-gray-900 p-3.5 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800">
+        <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Caja Cobrada Hoy</span>
+        <div id="m-ingresos-usd" class="text-xl font-black text-emerald-600 dark:text-emerald-400 mt-1">$0.00</div>
+        <div id="m-ingresos-bs" class="text-xs font-semibold text-gray-500 dark:text-gray-400">Bs. 0,00</div>
+      </div>
+      <div class="bg-white dark:bg-gray-900 p-3.5 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800">
+        <span class="text-[11px] font-semibold text-rose-500 uppercase tracking-wider">Gastos de Hoy (-)</span>
+        <div id="m-gastos-usd" class="text-xl font-black text-rose-600 dark:text-rose-400 mt-1">$0.00</div>
+        <div id="m-gastos-bs" class="text-xs font-semibold text-gray-500 dark:text-gray-400">Bs. 0,00</div>
+      </div>
+      <div class="bg-indigo-50 dark:bg-indigo-950/40 p-3.5 rounded-xl shadow-sm border border-indigo-200 dark:border-indigo-900/60">
+        <span class="text-[11px] font-bold text-indigo-700 dark:text-indigo-400 uppercase tracking-wider">Ganancia Neta Bolsillo</span>
+        <div id="m-ganancia-usd" class="text-xl font-black text-indigo-700 dark:text-indigo-300 mt-1">$0.00</div>
+        <div id="m-ganancia-bs" class="text-xs font-semibold text-indigo-600 dark:text-indigo-400">Bs. 0,00</div>
+      </div>
+      <div class="bg-amber-50 dark:bg-amber-950/40 p-3.5 rounded-xl shadow-sm border border-amber-200 dark:border-amber-900/60">
+        <span class="text-[11px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">En la Calle (Deudas)</span>
+        <div id="m-por-cobrar-usd" class="text-xl font-black text-amber-900 dark:text-amber-300 mt-1">$0.00</div>
+        <div id="m-por-cobrar-bs" class="text-xs font-semibold text-amber-700 dark:text-amber-400">Bs. 0,00</div>
+      </div>
+    </div>
+
+    <!-- Pestañas de Navegación -->
+    <div class="flex flex-wrap border-b border-gray-200 dark:border-gray-800 text-sm font-bold gap-1">
+      <button id="tab-btn-ventas" onclick="cambiarModulo('ventas')" class="py-2.5 px-4 border-b-2 border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400">
+        1. Salidas & Ventas
+      </button>
+      <button id="tab-btn-inventario" onclick="cambiarModulo('inventario')" class="py-2.5 px-4 border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 flex items-center gap-1.5">
+        <span>2. Inventario & Reposición</span>
+        <span id="badge-alertas" class="bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-black hidden">0</span>
+      </button>
+      <button id="tab-btn-gastos" onclick="cambiarModulo('gastos')" class="py-2.5 px-4 border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+        3. Gastos Operativos
+      </button>
+      <button id="tab-btn-deudas" onclick="cambiarModulo('deudas')" class="py-2.5 px-4 border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 flex items-center gap-1.5">
+        <span>4. Deudores & Cobranza</span>
+        <span id="badge-total-deudores" class="bg-rose-600 text-white text-[10px] px-1.5 py-0.5 rounded-full font-black hidden">0</span>
+      </button>
+    </div>
+
+    <!-- MÓDULO 1: VENTAS -->
+    <div id="modulo-ventas" class="space-y-6">
+      <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-4">
+        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Dinero que Entró a Caja Hoy</h3>
+        <div id="desglose-pagos-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
+      </div>
+
+      <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
+        <div class="p-4 border-b border-gray-100 dark:border-gray-800">
+          <h2 class="text-lg font-bold text-gray-800 dark:text-white">Últimas Ventas de Contado</h2>
+          <p class="text-xs text-gray-400">Pulsa "Anular" para cancelar una venta y reponer el stock.</p>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-sm">
+            <thead>
+              <tr class="bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-300 font-semibold text-xs">
+                <th class="p-3">Hora</th>
+                <th class="p-3">Prenda</th>
+                <th class="p-3 text-center">Talla</th>
+                <th class="p-3 text-center">Cant.</th>
+                <th class="p-3">Método</th>
+                <th class="p-3">Total Cobrado</th>
+                <th class="p-3 text-right">Acción</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-ventas" class="divide-y divide-gray-100 dark:divide-gray-800"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- MÓDULO 2: INVENTARIO -->
+    <div id="modulo-inventario" class="hidden space-y-6">
+      <!-- Alertas -->
+      <div class="bg-amber-50 dark:bg-amber-950/30 rounded-xl p-4 border border-amber-200 dark:border-amber-900/60">
+        <div class="mb-3">
+          <h3 class="text-sm font-bold text-amber-900 dark:text-amber-300">⚠️ Alertas de Reposición (Stock Crítico)</h3>
+          <p class="text-xs text-amber-700 dark:text-amber-400">Prendas que alcanzaron o bajaron del stock mínimo configurado.</p>
+        </div>
+        <div id="grid-alertas" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5"></div>
+      </div>
+
+      <!-- Tabla Inventario -->
+      <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
+        <div class="p-4 border-b border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row justify-between items-center gap-3">
+          <div>
+            <h2 class="text-lg font-bold text-gray-800 dark:text-white">Inventario Completo</h2>
+            <p class="text-xs text-gray-400">Control de stock y umbrales mínimos por prenda.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <input type="text" id="buscador" onkeyup="filtrarTabla()" placeholder="Buscar prenda o talla..." 
+                   class="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-lg px-3 py-1.5 text-xs w-full sm:w-48 focus:outline-none">
+            <button onclick="abrirModalReabastecer()" 
+                    class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-3 py-1.5 rounded-lg shadow-sm text-xs whitespace-nowrap transition">
+              + Surtir / Entrada
+            </button>
+            <button onclick="document.getElementById('modalProducto').classList.remove('hidden')" 
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-3 py-1.5 rounded-lg shadow-sm text-xs whitespace-nowrap transition">
+              + Nuevo Modelo
+            </button>
+          </div>
+        </div>
+        
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-sm">
+            <thead>
+              <tr class="bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-300 font-semibold">
+                <th class="p-3">Prenda / Modelo</th>
+                <th class="p-3 text-center">Talla</th>
+                <th class="p-3">Precio ($ / Bs.)</th>
+                <th class="p-3 text-center">Stock Actual</th>
+                <th class="p-3 text-center text-xs text-gray-400">Aviso Mín.</th>
+                <th class="p-3 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-inventario" class="divide-y divide-gray-100 dark:divide-gray-800"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- MÓDULO 3: GASTOS -->
+    <div id="modulo-gastos" class="hidden space-y-6">
+      <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div>
+          <h2 class="text-lg font-bold text-gray-800 dark:text-white">Gastos y Egresos Operativos</h2>
+          <p class="text-xs text-gray-400">Bolsas, delivery, etiquetas y pasajes para deducir de la ganancia real.</p>
+        </div>
+        <button onclick="document.getElementById('modalGasto').classList.remove('hidden')" 
+                class="bg-rose-600 hover:bg-rose-700 text-white font-medium px-4 py-2 rounded-lg shadow-sm text-xs transition">
+          + Registrar Gasto
+        </button>
+      </div>
+
+      <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-sm">
+            <thead>
+              <tr class="bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-300 font-semibold text-xs">
+                <th class="p-3">Fecha</th>
+                <th class="p-3">Descripción</th>
+                <th class="p-3">Categoría</th>
+                <th class="p-3">Método</th>
+                <th class="p-3 text-right">Monto ($ / Bs.)</th>
+                <th class="p-3 text-right">Acción</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-gastos" class="divide-y divide-gray-100 dark:divide-gray-800"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- MÓDULO 4: DEUDAS -->
+    <div id="modulo-deudas" class="hidden space-y-6">
+      <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div>
+          <h2 class="text-lg font-bold text-gray-800 dark:text-white">Módulo de Cobranzas</h2>
+          <p class="text-xs text-gray-400">Clientes con crédito activo, recordatorios por WhatsApp y registro de abonos.</p>
+        </div>
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <select id="filtro-deuda" onchange="cargarCreditos()" class="text-xs border dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none font-medium">
+            <option value="PENDIENTE">Solo Deudores Activos</option>
+            <option value="TODOS">Todos (Incluyendo Solventes)</option>
+            <option value="PAGADO">Solo Solventes</option>
+          </select>
+          <input type="text" id="buscador-deudor" onkeyup="filtrarDeudores()" placeholder="Buscar cliente..." 
+                 class="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-lg px-3 py-1 text-xs w-full sm:w-48 focus:outline-none">
+        </div>
+      </div>
+
+      <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-sm">
+            <thead>
+              <tr class="bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-300 font-semibold text-xs">
+                <th class="p-3">Cliente / Contacto</th>
+                <th class="p-3">Prenda & Talla</th>
+                <th class="p-3 text-center">Deuda Total</th>
+                <th class="p-3 text-center">Abonado</th>
+                <th class="p-3 text-center">Resta por Cobrar</th>
+                <th class="p-3 text-center">Estado</th>
+                <th class="p-3 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-creditos" class="divide-y divide-gray-100 dark:divide-gray-800"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: SURTIR / REABASTECER -->
+  <div id="modalReabastecer" class="fixed inset-0 bg-black/60 flex items-center justify-center hidden p-4 z-50">
+    <div class="bg-white dark:bg-gray-900 rounded-2xl p-6 w-full max-w-sm shadow-2xl border border-gray-200 dark:border-gray-800">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="text-lg font-bold text-gray-900 dark:text-white">Entrada de Mercancía</h3>
+        <button onclick="document.getElementById('modalReabastecer').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 font-bold text-xl">&times;</button>
+      </div>
+
+      <form id="formReabastecer" onsubmit="guardarReabastecimiento(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Seleccionar Prenda</label>
+          <select id="reab-producto-id" onchange="actualizarPreciosSugeridosReab()" required class="w-full border dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg p-2 text-sm text-gray-800 dark:text-white font-medium"></select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Talla</label>
+            <select id="reab-talla" class="w-full border dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg p-2 text-sm text-gray-800 dark:text-white">
+              <option value="XS">XS</option>
+              <option value="S">S</option>
+              <option value="M" selected>M</option>
+              <option value="L">L</option>
+              <option value="XL">XL</option>
+              <option value="XXL">XXL</option>
+              <option value="ÚNICA">ÚNICA</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Cantidad que entra</label>
+            <input type="number" id="reab-cantidad" min="1" value="1" required class="w-full border dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg p-2 text-sm text-gray-800 dark:text-white font-bold">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Costo Nuevo ($)</label>
+            <input type="number" step="0.01" id="reab-costo" placeholder="0.00" class="w-full border dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg p-2 text-sm text-gray-800 dark:text-white">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">P. Venta ($)</label>
+            <input type="number" step="0.01" id="reab-precio" placeholder="0.00" class="w-full border dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg p-2 text-sm text-gray-800 dark:text-white">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-amber-700 dark:text-amber-400 mb-1">Avisar cuando queden (Stock Mínimo)</label>
+          <input type="number" id="reab-stock-minimo" value="2" min="0" required class="w-full border dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg p-2 text-sm text-gray-800 dark:text-white">
+        </div>
+
+        <div class="pt-2 flex gap-2">
+          <button type="button" onclick="document.getElementById('modalReabastecer').classList.add('hidden')" class="w-1/2 py-2 border dark:border-gray-700 rounded-lg text-gray-600 dark:text-gray-300 text-sm">Cancelar</button>
+          <button type="submit" class="w-1/2 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium text-sm">Cargar Entrada</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: NUEVO MODELO -->
+  <div id="modalProducto" class="fixed inset-0 bg-black/60 flex items-center justify-center hidden p-4 z-50">
+    <div class="bg-white dark:bg-gray-900 rounded-2xl p-6 w-full max-w-sm shadow-2xl border border-gray-200 dark:border-gray-800">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-bold text-gray-900 dark:text-white">Nuevo Modelo de Prenda</h3>
+        <button onclick="document.getElementById('modalProducto').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 font-bold text-xl">&times;</button>
+      </div>
+      <form id="formPrenda" onsubmit="guardarPrenda(event)" class="space-y-3" enctype="multipart/form-data">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Nombre / Modelo</label>
+          <input type="text" id="p-nombre" name="nombre" placeholder="Ej. Franela Boxy Negra" required class="w-full border dark:border-gray-700 rounded-lg p-2 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-white">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Foto (Opcional)</label>
+          <input type="file" id="p-foto" name="foto" accept="image/*" class="w-full border dark:border-gray-700 rounded-lg p-1.5 text-xs bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 dark:file:bg-indigo-950 file:text-indigo-600">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Talla</label>
+            <select id="p-talla" name="talla" class="w-full border dark:border-gray-700 rounded-lg p-2 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-white">
+              <option value="XS">XS</option>
+              <option value="S">S</option>
+              <option value="M" selected>M</option>
+              <option value="L">L</option>
+              <option value="XL">XL</option>
+              <option value="XXL">XXL</option>
+              <option value="ÚNICA">ÚNICA</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Stock Inicial</label>
+            <input type="number" id="p-stock" name="stock" value="1" min="1" required class="w-full border dark:border-gray-700 rounded-lg p-2 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-white font-bold">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Costo Unit. ($)</label>
+            <input type="number" step="0.01" id="p-costo" name="costo" placeholder="0.00" required class="w-full border dark:border-gray-700 rounded-lg p-2 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-white">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">P. Venta ($)</label>
+            <input type="number" step="0.01" id="p-precio" name="precio" placeholder="0.00" required class="w-full border dark:border-gray-700 rounded-lg p-2 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-white font-bold">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-amber-700 dark:text-amber-400 mb-1">Avisar cuando queden (Stock Mínimo)</label>
+          <input type="number" id="p-stock-minimo" name="stock_minimo" value="2" min="0" required class="w-full border dark:border-gray-700 rounded-lg p-2 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-white">
+          <span class="text-[10px] text-gray-400">Si el stock baja a este valor o menos, aparecerá en Alertas de Reposición.</span>
+        </div>
+        <div class="pt-3 flex gap-2">
+          <button type="button" onclick="document.getElementById('modalProducto').classList.add('hidden')" class="w-1/2 py-2 border dark:border-gray-700 rounded-lg text-gray-600 dark:text-gray-300 text-sm">Cancelar</button>
+          <button type="submit" class="w-1/2 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium text-sm">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: REGISTRAR GASTO -->
+  <div id="modalGasto" class="fixed inset-0 bg-black/60 flex items-center justify-center hidden p-4 z-50">
+    <div class="bg-white dark:bg-gray-900 rounded-2xl p-6 w-full max-w-sm shadow-2xl border border-gray-200 dark:border-gray-800">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="text-lg font-bold text-gray-900 dark:text-white">Registrar Gasto Operativo</h3>
+        <button onclick="document.getElementById('modalGasto').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 font-bold text-xl">&times;</button>
+      </div>
+      <form id="formGasto" onsubmit="guardarGasto(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Concepto / Descripción</label>
+          <input type="text" id="g-descripcion" placeholder="Ej. Bolsas para delivery" required class="w-full border dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg p-2 text-sm text-gray-800 dark:text-white">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Categoría</label>
+            <select id="g-categoria" class="w-full border dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg p-2 text-sm text-gray-800 dark:text-white">
+              <option value="Empaque / Bolsas">Empaque / Bolsas</option>
+              <option value="Delivery / Flete">Delivery / Flete</option>
+              <option value="Etiquetas / Marca">Etiquetas / Marca</option>
+              <option value="Publicidad">Publicidad</option>
+              <option value="Otros">Otros</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Monto ($ USD)</label>
+            <input type="number" step="0.01" id="g-monto" placeholder="0.00" required class="w-full border dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg p-2 text-sm text-gray-800 dark:text-white font-bold">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Método de Pago</label>
+          <select id="g-metodo" class="w-full border dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg p-2 text-sm text-gray-800 dark:text-white">
+            <option value="Efectivo USD">💵 Efectivo USD ($)</option>
+            <option value="Pago Móvil">📱 Pago Móvil (Bs.)</option>
+            <option value="Punto de Venta">💳 Punto / Débito (Bs.)</option>
+            <option value="Efectivo Bs.">💵 Efectivo Bs.</option>
+          </select>
+        </div>
+        <div class="pt-2 flex gap-2">
+          <button type="button" onclick="document.getElementById('modalGasto').classList.add('hidden')" class="w-1/2 py-2 border dark:border-gray-700 rounded-lg text-gray-600 dark:text-gray-300 text-sm">Cancelar</button>
+          <button type="submit" class="w-1/2 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-medium text-sm">Guardar Gasto</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: VENTAS / SALIDAS -->
+  <div id="modalVender" class="fixed inset-0 bg-black/60 flex items-center justify-center hidden p-4 z-50">
+    <div class="bg-white dark:bg-gray-900 rounded-2xl p-6 w-full max-w-md shadow-2xl border border-gray-200 dark:border-gray-800">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="text-lg font-bold text-gray-900 dark:text-white">Registrar Salida de Prenda</h3>
+        <button onclick="document.getElementById('modalVender').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 font-bold text-xl">&times;</button>
+      </div>
+
+      <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 mb-4 text-sm flex gap-3 items-center">
+        <img id="v-foto" src="" class="w-12 h-12 object-cover rounded-lg border dark:border-gray-700 hidden">
+        <div>
+          <p class="font-bold text-gray-800 dark:text-white" id="v-nombre">-</p>
+          <p class="text-gray-500 dark:text-gray-400 text-xs">Talla: <span id="v-talla" class="font-semibold text-gray-700 dark:text-gray-200"></span> | Stock: <span id="v-stock-disponible" class="font-semibold"></span></p>
+          <p class="text-xs mt-0.5 text-indigo-700 dark:text-indigo-400 font-medium">Precio: <span id="v-precio-unitario"></span></p>
+        </div>
+      </div>
+
+      <form id="formVenta" onsubmit="confirmarVenta(event)" class="space-y-3">
+        <input type="hidden" id="v-item-id">
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Cantidad</label>
+            <input type="number" id="v-cantidad" min="1" value="1" required class="w-full border dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-white rounded-lg p-2 text-sm font-semibold">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Tipo de Salida</label>
+            <select id="v-tipo" onchange="toggleTipoVenta()" class="w-full border dark:border-gray-700 bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 rounded-lg p-2 text-sm font-bold">
+              <option value="CONTADO">Venta de Contado</option>
+              <option value="CREDITO">A Crédito (Deudor)</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="campos-contado">
+          <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Método de Pago</label>
+          <select id="v-metodo" class="w-full border dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-white rounded-lg p-2 text-sm font-medium">
+            <option value="Efectivo USD">💵 Efectivo USD ($)</option>
+            <option value="Pago Móvil">📱 Pago Móvil (Bs.)</option>
+            <option value="Punto de Venta">💳 Punto / Débito (Bs.)</option>
+            <option value="Efectivo Bs.">💵 Efectivo Bs.</option>
+            <option value="Transferencia">🏦 Transferencia</option>
+          </select>
+        </div>
+
+        <div id="campos-credito" class="hidden space-y-3 bg-rose-50 dark:bg-rose-950/30 p-3 rounded-lg border border-rose-200 dark:border-rose-900/60">
+          <div>
+            <label class="block text-xs font-bold text-rose-900 dark:text-rose-300 mb-1">Nombre del Cliente</label>
+            <input type="text" id="c-nombre" placeholder="Ej. Carlos Mendoza" class="w-full border dark:border-gray-700 rounded-lg p-2 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-white">
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-bold text-rose-900 dark:text-rose-300 mb-1">Teléfono / WhatsApp</label>
+              <input type="tel" id="c-telefono" placeholder="Ej. 04121234567" class="w-full border dark:border-gray-700 rounded-lg p-2 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-white">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-rose-900 dark:text-rose-300 mb-1">Abono Inicial ($)</label>
+              <input type="number" step="0.01" id="c-abono" value="0.00" class="w-full border dark:border-gray-700 rounded-lg p-2 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-white font-semibold">
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-rose-900 dark:text-rose-300 mb-1">Método del Abono Inicial</label>
+            <select id="c-metodo-abono" class="w-full border dark:border-gray-700 rounded-lg p-2 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-white">
+              <option value="Efectivo USD">💵 Efectivo USD ($)</option>
+              <option value="Pago Móvil">📱 Pago Móvil (Bs.)</option>
+              <option value="Efectivo Bs.">💵 Efectivo Bs.</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="pt-2 flex gap-2">
+          <button type="button" onclick="document.getElementById('modalVender').classList.add('hidden')" class="w-1/2 py-2 border dark:border-gray-700 rounded-lg text-gray-600 dark:text-gray-300 text-sm">Cancelar</button>
+          <button type="submit" class="w-1/2 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium text-sm">Confirmar Salida</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ABONAR DEUDA -->
+  <div id="modalAbonar" class="fixed inset-0 bg-black/60 flex items-center justify-center hidden p-4 z-50">
+    <div class="bg-white dark:bg-gray-900 rounded-2xl p-6 w-full max-w-sm shadow-2xl border border-gray-200 dark:border-gray-800">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="text-lg font-bold text-gray-900 dark:text-white">Registrar Abono</h3>
+        <button onclick="document.getElementById('modalAbonar').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 font-bold text-xl">&times;</button>
+      </div>
+
+      <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 mb-4 text-sm">
+        <p class="font-bold text-gray-800 dark:text-white" id="abono-cliente">-</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Saldo restante: <span id="abono-saldo-pendiente" class="font-bold text-rose-600 dark:text-rose-400"></span></p>
+      </div>
+
+      <form id="formAbonar" onsubmit="confirmarAbono(event)" class="space-y-4">
+        <input type="hidden" id="abono-credito-id">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Monto que abona ($ USD)</label>
+          <input type="number" step="0.01" id="abono-monto" required class="w-full border dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg p-2.5 text-base font-black">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Método de Pago</label>
+          <select id="abono-metodo" class="w-full border dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-white rounded-lg p-2 text-sm font-medium">
+            <option value="Efectivo USD">💵 Efectivo USD ($)</option>
+            <option value="Pago Móvil">📱 Pago Móvil (Bs.)</option>
+            <option value="Punto de Venta">💳 Punto / Débito (Bs.)</option>
+            <option value="Efectivo Bs.">💵 Efectivo Bs.</option>
+          </select>
+        </div>
+        <div class="pt-2 flex gap-2">
+          <button type="button" onclick="document.getElementById('modalAbonar').classList.add('hidden')" class="w-1/2 py-2 border dark:border-gray-700 rounded-lg text-gray-600 dark:text-gray-300 text-sm">Cancelar</button>
+          <button type="submit" class="w-1/2 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium text-sm">Guardar Pago</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- VISOR FOTOS -->
+  <div id="modalVisor" class="fixed inset-0 bg-black/80 flex items-center justify-center hidden p-4 z-50" onclick="this.classList.add('hidden')">
+    <div class="relative max-w-lg w-full bg-transparent p-2 text-center" onclick="event.stopPropagation()">
+      <img id="img-ampliada" src="" alt="Prenda" class="max-h-[80vh] w-auto mx-auto rounded-2xl shadow-2xl object-contain border border-gray-700">
+      <p id="txt-ampliada" class="text-white font-bold mt-2 text-sm drop-shadow"></p>
+      <button onclick="document.getElementById('modalVisor').classList.add('hidden')" class="absolute top-4 right-4 text-white text-3xl font-black">&times;</button>
+    </div>
+  </div>
+
+  <script>
+    let inventarioCache = [];
+    let creditosCache = [];
+    let gastosCache = [];
+    let productosListaCache = [];
+    let tasaUSD = 1.0;
+
+    function cambiarModulo(mod) {
+      ['ventas', 'inventario', 'gastos', 'deudas'].forEach(m => {
+        document.getElementById(`modulo-${m}`).classList.add('hidden');
+        document.getElementById(`tab-btn-${m}`).className = "py-2.5 px-4 border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 flex items-center gap-1.5";
+      });
+      document.getElementById(`modulo-${mod}`).classList.remove('hidden');
+      document.getElementById(`tab-btn-${mod}`).className = "py-2.5 px-4 border-b-2 border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400 flex items-center gap-1.5";
+
+      if (mod === 'gastos') cargarGastos();
+      if (mod === 'deudas') cargarCreditos();
+    }
+
+    function aplicarTema(oscuro) {
+      const html = document.documentElement;
+      if (oscuro) {
+        html.classList.add('dark');
+        document.getElementById('icono-sol').classList.remove('hidden');
+        document.getElementById('icono-luna').classList.add('hidden');
+        localStorage.setItem('tema_ropa', 'dark');
+      } else {
+        html.classList.remove('dark');
+        document.getElementById('icono-sol').classList.add('hidden');
+        document.getElementById('icono-luna').classList.remove('hidden');
+        localStorage.setItem('tema_ropa', 'light');
+      }
+    }
+    function alternarTema() {
+      aplicarTema(!document.documentElement.classList.contains('dark'));
+    }
+    if (localStorage.getItem('tema_ropa') === 'dark') aplicarTema(true);
+
+    function formatoBs(monto) {
+      return (monto * tasaUSD).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    async function actualizarTasaBCV(aviso = false) {
+      const btn = document.getElementById('btn-bcv');
+      btn.innerHTML = `<span>⏳ ...</span>`;
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/tasa/auto', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          tasaUSD = data.tasa;
+          document.getElementById('input-tasa').value = tasaUSD;
+          if (aviso) alert(`Tasa BCV actualizada: Bs. ${tasaUSD}`);
+          cargarDatos(false);
+        }
+      } catch (err) {
+        if (aviso) alert("Error de red");
+      } finally {
+        btn.innerHTML = `<span>⚡ BCV</span>`;
+        btn.disabled = false;
+      }
+    }
+
+    async function guardarTasaManual() {
+      const val = parseFloat(document.getElementById('input-tasa').value);
+      if (!val || val <= 0) return alert("Ingresa una tasa válida");
+      await fetch('/api/tasa', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ tasa: val })
+      });
+      tasaUSD = val;
+      cargarDatos(false);
+    }
+
+    async function cargarDatos(sincronizarBCV = true) {
+      if (sincronizarBCV) {
+        await actualizarTasaBCV(false);
+      } else {
+        const res = await fetch('/api/tasa');
+        const data = await res.json();
+        tasaUSD = data.tasa;
+        document.getElementById('input-tasa').value = tasaUSD;
+      }
+
+      // 1. Inventario
+      const resInv = await fetch('/api/inventario');
+      inventarioCache = await resInv.json();
+      renderTabla(inventarioCache);
+
+      // 2. Lista de productos únicos
+      const resProds = await fetch('/api/productos/lista');
+      productosListaCache = await resProds.json();
+
+      // 3. Métricas
+      const resMet = await fetch('/api/metricas');
+      const met = await resMet.json();
+      
+      const ingresosUSD = met.resumen_hoy.total_ingresos;
+      const gastosUSD = met.resumen_hoy.total_gastos;
+      const gananciaUSD = met.resumen_hoy.ganancia_neta;
+      const porCobrarUSD = met.resumen_hoy.total_por_cobrar;
+
+      document.getElementById('m-ingresos-usd').innerText = `$${ingresosUSD.toFixed(2)}`;
+      document.getElementById('m-ingresos-bs').innerText = `Bs. ${formatoBs(ingresosUSD)}`;
+
+      document.getElementById('m-gastos-usd').innerText = `$${gastosUSD.toFixed(2)}`;
+      document.getElementById('m-gastos-bs').innerText = `Bs. ${formatoBs(gastosUSD)}`;
+
+      document.getElementById('m-ganancia-usd').innerText = `$${gananciaUSD.toFixed(2)}`;
+      document.getElementById('m-ganancia-bs').innerText = `Bs. ${formatoBs(gananciaUSD)}`;
+
+      document.getElementById('m-por-cobrar-usd').innerText = `$${porCobrarUSD.toFixed(2)}`;
+      document.getElementById('m-por-cobrar-bs').innerText = `Bs. ${formatoBs(porCobrarUSD)}`;
+
+      renderDesglose(met.desglose_pagos);
+      renderVentas(met.ventas_recientes);
+      renderAlertas(met.alertas_reposicion);
+      cargarCreditos();
+    }
+
+    function renderAlertas(alertas) {
+      const grid = document.getElementById('grid-alertas');
+      const badge = document.getElementById('badge-alertas');
+      grid.innerHTML = '';
+
+      if (alertas.length === 0) {
+        grid.innerHTML = `<div class="col-span-3 text-xs text-emerald-700 dark:text-emerald-400 font-medium">✓ Todo el inventario está por encima de su stock mínimo configurado.</div>`;
+        badge.classList.add('hidden');
+        return;
+      }
+
+      badge.innerText = alertas.length;
+      badge.classList.remove('hidden');
+
+      alertas.forEach(a => {
+        const esAgotado = a.stock === 0;
+        const colorCard = esAgotado 
+          ? 'bg-rose-100/70 dark:bg-rose-950/40 border-rose-300 dark:border-rose-900 text-rose-900 dark:text-rose-200' 
+          : 'bg-amber-100/70 dark:bg-amber-950/40 border-amber-300 dark:border-amber-900 text-amber-900 dark:text-amber-200';
+
+        grid.innerHTML += `
+          <div class="p-2.5 rounded-lg border ${colorCard} flex items-center justify-between text-xs">
+            <div>
+              <div class="font-bold truncate max-w-[130px] sm:max-w-[150px]">${a.nombre}</div>
+              <div class="text-[11px] opacity-80">Talla: <span class="font-black">${a.talla}</span> | Quedan: <span class="font-black">${a.stock} un.</span></div>
+              <div class="text-[10px] opacity-70">Mínimo fijado: ${a.stock_minimo} un.</div>
+            </div>
+            <div class="text-right flex flex-col items-end gap-1">
+              <span class="font-black px-1.5 py-0.5 rounded text-[10px] ${esAgotado ? 'bg-rose-600 text-white' : 'bg-amber-600 text-white'}">
+                ${esAgotado ? 'AGOTADO' : 'BAJO'}
+              </span>
+              <button onclick="abrirModalReabastecerPrenda(${a.producto_id}, '${a.talla}', ${a.costo}, ${a.precio}, ${a.stock_minimo})" 
+                      class="px-2 py-0.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-[10px] font-bold transition">
+                + Surtir
+              </button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function renderDesglose(desglose) {
+      const grid = document.getElementById('desglose-pagos-grid');
+      grid.innerHTML = '';
+      if (desglose.length === 0) {
+        grid.innerHTML = `<div class="col-span-4 text-xs text-gray-400 py-1">Sin ingresos cobrados hoy.</div>`;
+        return;
+      }
+      desglose.forEach(d => {
+        grid.innerHTML += `
+          <div class="p-3 rounded-lg border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50 dark:bg-emerald-950/40">
+            <div class="text-xs font-semibold text-gray-600 dark:text-gray-300 truncate">${d.metodo_pago}</div>
+            <div class="font-bold text-gray-900 dark:text-white text-sm mt-0.5">$${d.total_usd.toFixed(2)}</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400 font-medium">Bs. ${d.total_bs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+          </div>
+        `;
+      });
+    }
+
+    function renderTabla(items) {
+      const tbody = document.getElementById('tabla-inventario');
+      tbody.innerHTML = '';
+      if (items.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-gray-400">Sin prendas en inventario.</td></tr>`;
+        return;
+      }
+
+      items.forEach(i => {
+        const badgeStock = i.stock > i.stock_minimo 
+          ? `<span class="bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-xs font-bold px-2 py-0.5 rounded-full">${i.stock} un.</span>`
+          : i.stock > 0 
+          ? `<span class="bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 text-xs font-bold px-2 py-0.5 rounded-full">${i.stock} un. (Reponer)</span>`
+          : `<span class="bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 text-xs font-bold px-2 py-0.5 rounded-full">Agotado</span>`;
+
+        const thumb = i.imagen 
+          ? `<img src="/uploads/${i.imagen}" onclick="verFoto('/uploads/${i.imagen}', '${i.nombre.replace(/'/g, "\\'")}')" class="w-10 h-10 object-cover rounded-lg border dark:border-gray-700 cursor-pointer hover:opacity-80 transition flex-shrink-0">`
+          : `<div class="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center text-gray-400 border dark:border-gray-700 flex-shrink-0 text-xs">Sin foto</div>`;
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition border-b border-gray-100 dark:border-gray-800">
+            <td class="p-3">
+              <div class="flex items-center gap-3">
+                ${thumb}
+                <div>
+                  <div class="font-medium text-gray-900 dark:text-white">${i.nombre}</div>
+                  <div class="text-xs text-gray-400">${i.categoria || 'General'} | Costo: $${i.costo.toFixed(2)}</div>
+                </div>
+              </div>
+            </td>
+            <td class="p-3 text-center font-bold text-gray-700 dark:text-gray-300">${i.talla}</td>
+            <td class="p-3">
+              <span class="font-bold text-gray-900 dark:text-white">$${i.precio.toFixed(2)}</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400 ml-1">(Bs. ${formatoBs(i.precio)})</span>
+            </td>
+            <td class="p-3 text-center">${badgeStock}</td>
+            <td class="p-3 text-center text-xs text-gray-500 font-mono">${i.stock_minimo} un.</td>
+            <td class="p-3 text-right">
+              <div class="flex items-center justify-end gap-1.5">
+                <button onclick="abrirModalReabastecerPrenda(${i.producto_id}, '${i.talla}', ${i.costo}, ${i.precio}, ${i.stock_minimo})" 
+                        title="Recargar stock de este producto" 
+                        class="px-2 py-1 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-bold transition">
+                  + Stock
+                </button>
+                <button onclick="abrirModalVender(${i.item_id}, '${i.nombre.replace(/'/g, "\\'")}', '${i.talla}', ${i.stock}, ${i.precio}, '${i.imagen || ''}')" 
+                        ${i.stock <= 0 ? 'disabled' : ''} 
+                        class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 dark:disabled:bg-gray-800 text-white rounded-lg text-xs font-semibold shadow-sm transition">
+                  Salida
+                </button>
+                <button onclick="eliminarPrenda(${i.item_id}, '${i.nombre.replace(/'/g, "\\'")}', '${i.talla}')" 
+                        title="Eliminar talla" 
+                        class="p-1 text-gray-400 hover:text-rose-600 rounded-lg transition">
+                  ✕
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    // --- REABASTECER PRODUCTO EXISTENTE ---
+    function abrirModalReabastecer() {
+      const select = document.getElementById('reab-producto-id');
+      select.innerHTML = '';
+      if (productosListaCache.length === 0) {
+        alert("Primero debes registrar al menos un modelo de prenda.");
+        return;
+      }
+
+      productosListaCache.forEach(p => {
+        select.innerHTML += `<option value="${p.id}" data-costo="${p.costo}" data-precio="${p.precio}">${p.nombre}</option>`;
+      });
+
+      actualizarPreciosSugeridosReab();
+      document.getElementById('modalReabastecer').classList.remove('hidden');
+    }
+
+    function abrirModalReabastecerPrenda(productoId, talla, costo, precio, stockMin) {
+      abrirModalReabastecer();
+      document.getElementById('reab-producto-id').value = productoId;
+      document.getElementById('reab-talla').value = talla;
+      document.getElementById('reab-costo').value = costo.toFixed(2);
+      document.getElementById('reab-precio').value = precio.toFixed(2);
+      document.getElementById('reab-stock-minimo').value = stockMin;
+    }
+
+    function actualizarPreciosSugeridosReab() {
+      const select = document.getElementById('reab-producto-id');
+      const opt = select.options[select.selectedIndex];
+      if (opt) {
+        document.getElementById('reab-costo').value = parseFloat(opt.dataset.costo || 0).toFixed(2);
+        document.getElementById('reab-precio').value = parseFloat(opt.dataset.precio || 0).toFixed(2);
+      }
+    }
+
+    async function guardarReabastecimiento(e) {
+      e.preventDefault();
+      const payload = {
+        producto_id: parseInt(document.getElementById('reab-producto-id').value),
+        talla: document.getElementById('reab-talla').value,
+        cantidad: parseInt(document.getElementById('reab-cantidad').value),
+        costo: parseFloat(document.getElementById('reab-costo').value) || 0,
+        precio: parseFloat(document.getElementById('reab-precio').value) || 0,
+        stock_minimo: parseInt(document.getElementById('reab-stock-minimo').value) || 2
+      };
+
+      const res = await fetch('/api/inventario/reabastecer', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        document.getElementById('modalReabastecer').classList.add('hidden');
+        document.getElementById('formReabastecer').reset();
+        cargarDatos(false);
+      } else {
+        alert("Error al cargar la entrada de mercancía.");
+      }
+    }
+
+    // --- GASTOS OPERATIVOS ---
+    async function cargarGastos() {
+      const res = await fetch('/api/gastos');
+      gastosCache = await res.json();
+      const tbody = document.getElementById('tabla-gastos');
+      tbody.innerHTML = '';
+
+      if (gastosCache.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-gray-400">Sin gastos registrados.</td></tr>`;
+        return;
+      }
+
+      gastosCache.forEach(g => {
+        const montoBs = g.monto_usd * (g.tasa_momento || tasaUSD);
+        tbody.innerHTML += `
+          <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition border-b border-gray-100 dark:border-gray-800">
+            <td class="p-3 text-xs text-gray-400">${g.fecha.split(' ')[0]} ${g.fecha.split(' ')[1] || ''}</td>
+            <td class="p-3 font-semibold text-gray-800 dark:text-gray-200">${g.descripcion}</td>
+            <td class="p-3 text-xs text-gray-500">${g.categoria}</td>
+            <td class="p-3 text-xs text-gray-500">${g.metodo_pago}</td>
+            <td class="p-3 text-right">
+              <span class="font-bold text-rose-600 dark:text-rose-400">-$${g.monto_usd.toFixed(2)}</span>
+              <span class="text-xs text-gray-400 ml-1">(Bs. ${montoBs.toLocaleString('es-VE', {minimumFractionDigits: 2})})</span>
+            </td>
+            <td class="p-3 text-right">
+              <button onclick="eliminarGasto(${g.id})" class="text-xs text-rose-600 hover:underline">Borrar</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    async function guardarGasto(e) {
+      e.preventDefault();
+      const payload = {
+        descripcion: document.getElementById('g-descripcion').value.trim(),
+        categoria: document.getElementById('g-categoria').value,
+        monto_usd: parseFloat(document.getElementById('g-monto').value),
+        metodo_pago: document.getElementById('g-metodo').value
+      };
+      await fetch('/api/gastos', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+      });
+      document.getElementById('modalGasto').classList.add('hidden');
+      document.getElementById('formGasto').reset();
+      cargarDatos(false);
+      cargarGastos();
+    }
+
+    async function eliminarGasto(id) {
+      if (!confirm("¿Eliminar este gasto?")) return;
+      await fetch('/api/gastos/eliminar', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ gasto_id: id })
+      });
+      cargarDatos(false);
+      cargarGastos();
+    }
+
+    // --- COBRANZAS ---
+    async function cargarCreditos() {
+      const res = await fetch('/api/creditos');
+      creditosCache = await res.json();
+      const badge = document.getElementById('badge-total-deudores');
+      const activos = creditosCache.filter(c => c.estado === 'PENDIENTE').length;
+      if (activos > 0) {
+        badge.innerText = activos;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+      renderCreditos(creditosCache);
+    }
+
+    function renderCreditos(lista) {
+      const filtro = document.getElementById('filtro-deuda').value;
+      const tbody = document.getElementById('tabla-creditos');
+      tbody.innerHTML = '';
+      let items = filtro === 'PENDIENTE' ? lista.filter(c => c.estado === 'PENDIENTE') : filtro === 'PAGADO' ? lista.filter(c => c.estado === 'PAGADO') : lista;
+
+      if (items.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-gray-400">Sin registros de deudas.</td></tr>`;
+        return;
+      }
+
+      items.forEach(c => {
+        const esPagado = c.estado === 'PAGADO';
+        let tel = (c.cliente_telefono || '').replace(/\D/g, '');
+        if (tel.startsWith('0')) tel = '58' + tel.substring(1);
+        const msg = encodeURIComponent(`Hola ${c.cliente_nombre}, te recordamos tu saldo de ${c.producto_nombre} (${c.talla}): $${c.saldo_pendiente.toFixed(2)} (Bs. ${formatoBs(c.saldo_pendiente)}). Tasa BCV: Bs. ${tasaUSD}`);
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition border-b border-gray-100 dark:border-gray-800">
+            <td class="p-3">
+              <div class="font-bold text-gray-900 dark:text-white">${c.cliente_nombre}</div>
+              <div class="text-xs text-gray-400 font-mono">${c.cliente_telefono || 'Sin teléfono'}</div>
+            </td>
+            <td class="p-3">
+              <span class="font-medium text-gray-800 dark:text-gray-200">${c.producto_nombre}</span>
+              <span class="text-xs font-bold text-gray-500 ml-1">(${c.talla} x ${c.cantidad})</span>
+            </td>
+            <td class="p-3 text-center font-semibold">$${c.total_deuda.toFixed(2)}</td>
+            <td class="p-3 text-center text-emerald-600 font-semibold">$${c.total_abonado.toFixed(2)}</td>
+            <td class="p-3 text-center">
+              <div class="font-black ${c.saldo_pendiente > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-gray-400'}">
+                $${c.saldo_pendiente.toFixed(2)}
+              </div>
+              <div class="text-xs text-gray-400">Bs. ${formatoBs(c.saldo_pendiente)}</div>
+            </td>
+            <td class="p-3 text-center">
+              <span class="text-xs font-bold px-2 py-0.5 rounded-full ${esPagado ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
+                ${esPagado ? 'Solvente' : 'Debe'}
+              </span>
+            </td>
+            <td class="p-3 text-right">
+              <div class="flex items-center justify-end gap-1.5">
+                ${tel && !esPagado ? `<a href="https://wa.me/${tel}?text=${msg}" target="_blank" class="px-2 py-1 bg-emerald-600 text-white rounded text-xs">WhatsApp</a>` : ''}
+                ${!esPagado ? `<button onclick="abrirModalAbonar(${c.id}, '${c.cliente_nombre.replace(/'/g, "\\'")}', ${c.saldo_pendiente})" class="px-2.5 py-1 bg-indigo-600 text-white rounded text-xs">Abonar</button>` : ''}
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function renderVentas(ventas) {
+      const tbody = document.getElementById('tabla-ventas');
+      tbody.innerHTML = '';
+      if (ventas.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-400">No hay ventas registradas hoy.</td></tr>`;
+        return;
+      }
+      ventas.forEach(v => {
+        tbody.innerHTML += `
+          <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition border-b border-gray-100 dark:border-gray-800">
+            <td class="p-3 text-xs text-gray-400">${v.fecha.split(' ')[1] || v.fecha}</td>
+            <td class="p-3 font-medium text-gray-800 dark:text-white">${v.producto_nombre}</td>
+            <td class="p-3 text-center font-semibold text-gray-700 dark:text-gray-300">${v.talla}</td>
+            <td class="p-3 text-center font-semibold">${v.cantidad}</td>
+            <td class="p-3 text-xs text-gray-500"><span class="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded border border-gray-200 dark:border-gray-700">${v.metodo_pago}</span></td>
+            <td class="p-3 font-bold text-emerald-600">$${(v.precio_cobrado * v.cantidad).toFixed(2)}</td>
+            <td class="p-3 text-right">
+              <button onclick="anularVenta(${v.id})" class="text-xs text-rose-600 hover:underline">Anular</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function abrirModalVender(itemId, nombre, talla, stock, precio, imagen) {
+      document.getElementById('v-item-id').value = itemId;
+      document.getElementById('v-nombre').innerText = nombre;
+      document.getElementById('v-talla').innerText = talla;
+      document.getElementById('v-stock-disponible').innerText = `${stock} un.`;
+      document.getElementById('v-precio-unitario').innerText = `$${precio.toFixed(2)} (Bs. ${formatoBs(precio)})`;
+      
+      const imgEl = document.getElementById('v-foto');
+      if (imagen) {
+        imgEl.src = `/uploads/${imagen}`;
+        imgEl.classList.remove('hidden');
+      } else {
+        imgEl.classList.add('hidden');
+      }
+      document.getElementById('v-cantidad').max = stock;
+      document.getElementById('v-cantidad').value = 1;
+      document.getElementById('v-tipo').value = 'CONTADO';
+      toggleTipoVenta();
+      document.getElementById('modalVender').classList.remove('hidden');
+    }
+
+    function toggleTipoVenta() {
+      const tipo = document.getElementById('v-tipo').value;
+      document.getElementById('campos-contado').classList.toggle('hidden', tipo !== 'CONTADO');
+      document.getElementById('campos-credito').classList.toggle('hidden', tipo !== 'CONTADO');
+    }
+
+    async function confirmarVenta(e) {
+      e.preventDefault();
+      const tipo = document.getElementById('v-tipo').value;
+      const payload = {
+        item_id: document.getElementById('v-item-id').value,
+        cantidad: parseInt(document.getElementById('v-cantidad').value),
+        tipo_operacion: tipo
+      };
+      if (tipo === 'CONTADO') {
+        payload.metodo_pago = document.getElementById('v-metodo').value;
+      } else {
+        payload.cliente_nombre = document.getElementById('c-nombre').value.trim();
+        payload.cliente_telefono = document.getElementById('c-telefono').value.trim();
+        payload.abono_inicial = parseFloat(document.getElementById('c-abono').value) || 0.0;
+        payload.metodo_abono = document.getElementById('c-metodo-abono').value;
+      }
+      const res = await fetch('/api/vender', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        document.getElementById('modalVender').classList.add('hidden');
+        cargarDatos(false);
+      } else {
+        alert("Stock insuficiente o error");
+      }
+    }
+
+    function abrirModalAbonar(id, cliente, saldo) {
+      document.getElementById('abono-credito-id').value = id;
+      document.getElementById('abono-cliente').innerText = `Deudor: ${cliente}`;
+      document.getElementById('abono-saldo-pendiente').innerText = `$${saldo.toFixed(2)} (Bs. ${formatoBs(saldo)})`;
+      document.getElementById('abono-monto').value = saldo.toFixed(2);
+      document.getElementById('modalAbonar').classList.remove('hidden');
+    }
+
+    async function confirmarAbono(e) {
+      e.preventDefault();
+      await fetch('/api/creditos/abonar', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          credito_id: document.getElementById('abono-credito-id').value,
+          monto: parseFloat(document.getElementById('abono-monto').value),
+          metodo_pago: document.getElementById('abono-metodo').value
+        })
+      });
+      document.getElementById('modalAbonar').classList.add('hidden');
+      cargarDatos(false);
+    }
+
+    async function guardarPrenda(e) {
+      e.preventDefault();
+      await fetch('/api/productos', {
+        method: 'POST',
+        body: new FormData(document.getElementById('formPrenda'))
+      });
+      document.getElementById('modalProducto').classList.add('hidden');
+      document.getElementById('formPrenda').reset();
+      cargarDatos(false);
+    }
+
+    async function anularVenta(id) {
+      if (!confirm("¿Anular esta venta y reponer stock?")) return;
+      await fetch('/api/ventas/anular', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ venta_id: id })
+      });
+      cargarDatos(false);
+    }
+
+    async function eliminarPrenda(id, nombre, talla) {
+      if (!confirm(`¿Eliminar ${nombre} (Talla ${talla})?`)) return;
+      await fetch('/api/inventario/eliminar', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ item_id: id })
+      });
+      cargarDatos(false);
+    }
+
+    function verFoto(url, nombre) {
+      document.getElementById('img-ampliada').src = url;
+      document.getElementById('txt-ampliada').innerText = nombre;
+      document.getElementById('modalVisor').classList.remove('hidden');
+    }
+
+    function filtrarTabla() {
+      const q = document.getElementById('buscador').value.toLowerCase();
+      renderTabla(inventarioCache.filter(i => i.nombre.toLowerCase().includes(q) || i.talla.toLowerCase().includes(q)));
+    }
+
+    function filtrarDeudores() {
+      const q = document.getElementById('buscador-deudor').value.toLowerCase();
+      renderCreditos(creditosCache.filter(c => c.cliente_nombre.toLowerCase().includes(q) || (c.cliente_telefono && c.cliente_telefono.includes(q))));
+    }
+
+    cargarDatos(true);
+  </script>
+</body>
+</html>
